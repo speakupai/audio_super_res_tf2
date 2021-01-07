@@ -1,2 +1,3 @@
-# audio_super_res_tf2
-tf2 adaption of audio super res paper
+# Audio Super Resolution Tensorflow 2
+
+TF2 implmentation of the Audio Super Resolution paper by V. Kuleshov, Z. Enam, and S. Ermon. Audio Super Resolution Using Neural Networks. ICLR 2017 
