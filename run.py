@@ -26,8 +26,7 @@ def make_parser():
   train_parser.set_defaults(func=train)
 
   train_parser.add_argument('--model', default='audiounet',
-    choices=('audiounet', 'audiotfilm', 'dnn', 'spline'),
-    help='model to train')
+    choices=('audiounet'), help='only audiotfilm used')
   
   train_parser.add_argument('--train', required=True,
     help='path to h5 archive of training patches')
@@ -54,26 +53,17 @@ def make_parser():
     help='learning rate')
   
   train_parser.add_argument('--r', type=int, default=4,
-                            help='upscaling factor')
+    help='upscaling factor')
   
-  train_parser.add_argument('--speaker', default='single',
-                            choices=('single', 'multi'),
-                            help='number of speakers being trained on')
+  train_parser.add_argument('--speaker', default='single', choices=('single', 'multi'),
+    help='number of speakers being trained on')
   
-  train_parser.add_argument('--piano', default='false',
-                            choices=('true', 'false'))
+  train_parser.add_argument('--pool_size', type=int, default=4,
+    help='size of pooling window')
   
-  train_parser.add_argument('--grocery', default='false',
-                            choices=('true', 'false'))
+  train_parser.add_argument('--strides', type=int, default=4, help='pooling stide')
   
-  train_parser.add_argument('--pool_size', type=int,
-                            default=4, help='size of pooling window')
-  
-  train_parser.add_argument('--strides', type=int, default=4,
-                            help='pooling stide')
-  
-  train_parser.add_argument('--full', default='false',
-                            choices=('true', 'false'))
+  train_parser.add_argument('--full', default='false', choices=('true', 'false'))
 
   # eval
   eval_parser = subparsers.add_parser('eval')
@@ -88,31 +78,27 @@ def make_parser():
   eval_parser.add_argument('--wav-file-list', 
     help='list of audio files for evaluation')
   
-  eval_parser.add_argument('--r', help='upscaling factor',
-                           default = 4, type=int)
+  eval_parser.add_argument('--r', help='upscaling factor', default = 4, type=int)
   
-  eval_parser.add_argument('--sr', help='high-res sampling rate', 
-                                   type=int, default=16000)
+  eval_parser.add_argument('--sr', help='high-res sampling rate', type=int,
+    default=16000)
   
-  eval_parser.add_argument('--grocery', default='false',
-                           choices=('true', 'false'))
+  eval_parser.add_argument('--grocery', default='false', choices=('true', 'false'))
   
   eval_parser.add_argument('--model', default='audiounet',
-    choices=('audiounet', 'audiotfilm', 'dnn', 'spline'),
-    help='model to train')
+    choices=('audiounet'), help='model to train')
   
-  eval_parser.add_argument('--speaker', default='single',
-                           choices=('single', 'multi'),
-                           help='number of speakers being trained on')
+  eval_parser.add_argument('--speaker', default='single', choices=('single', 'multi'),
+    help='number of speakers being trained on')
   
   eval_parser.add_argument('--pool_size', type=int, default=4,
-                           help='size of pooling window')
+    help='size of pooling window')
   
   eval_parser.add_argument('--strides', type=int, default=4,
-                           help='pooling stide')
+    help='pooling stide')
   
   eval_parser.add_argument('--patch_size', type=int, default=8192,
-                           help='Size of patches over which the model operates')
+    help='Size of patches over which the model operates')
   
   return parser
 
@@ -122,34 +108,9 @@ def train(args):
   full = True if args.full == 'true' else False
     
   # get data
-  if(args.grocery == 'false'):
-    X_train, Y_train = load_h5(args.train)
-    X_val, Y_val = load_h5(args.val)
-  else:
-    X_train = pickle.load(open(
-      "../data/grocery/grocery/grocery-train-data" + args.train))
-    Y_train = pickle.load(open(
-      "../data/grocery/grocery/grocery-train-label" + args.train))
-    X_val = pickle.load(open(
-      "../data/grocery/grocery/grocery-test-data_" + args.train))
-    Y_val = pickle.load(open(
-      "../data/grocery/grocery/grocery-test-label" + args.train))
-    X_train = np.reshape(X_train, [X_train.shape[0], X_train.shape[1], 1])
-    Y_train = np.reshape(Y_train, [Y_train.shape[0], Y_train.shape[1], 1])
-    X_val = np.reshape(X_val, [X_val.shape[0], X_val.shape[1], 1])
-    Y_val = np.reshape(Y_val, [Y_val.shape[0], Y_val.shape[1], 1])
- 
-  # reshape piano data
-  if args.piano == 'true':
-      X_train = np.reshape(X_train, [X_train.shape[0],
-                                     X_val.shape[2], X_val.shape[1]])
-      Y_train = np.reshape(Y_train, [Y_train.shape[0],
-                                     Y_val.shape[2], Y_val.shape[1]])
-      X_val = np.reshape(X_val, [X_val.shape[0], X_val.shape[2],
-                                 X_val.shape[1]])
-      Y_val = np.reshape(Y_val, [Y_val.shape[0], Y_val.shape[2],
-                                 Y_val.shape[1]])
-
+  X_train, Y_train = load_h5(args.train)
+  X_val, Y_val = load_h5(args.val)
+  
   # determine super-resolution level
   n_dim, n_chan = Y_train[0].shape
   r = Y_train[0].shape[1] / X_train[0].shape[1]
@@ -159,13 +120,11 @@ def train(args):
   model = get_model(args, n_dim, r, from_ckpt=False, train=True)
   # train model
   model.fit(X_train, Y_train, X_val, Y_val, n_epoch=args.epochs,
-          r=args.r, speaker=args.speaker, grocery=args.grocery,
-          piano=args.piano, calc_full_snr = full)
+          r=args.r, speaker=args.speaker, calc_full_snr = full)
 
 def eval(args):
   # load model
-  model = get_model(args, 0, args.r, from_ckpt=True, train=False,
-                    grocery=args.grocery)
+  model = get_model(args, 0, args.r, from_ckpt=True, train=False)
   model.load(args.logname) # from default checkpoint
 
   if args.wav_file_list:
@@ -182,7 +141,7 @@ def eval(args):
         except EOFError:
           print ('WARNING: Error reading file:', line.strip())
 
-def get_model(args, n_dim, r, from_ckpt=False, train=True, grocery='false'):
+def get_model(args, n_dim, r, from_ckpt=False, train=True):
   """Create a model based on arguments"""  
   if train:
     opt_params = { 'alg' : args.alg, 'lr' : args.lr, 'b1' : 0.9, 'b2' : 0.999,
