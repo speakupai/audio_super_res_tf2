@@ -328,7 +328,8 @@ class Model(object):
 		i = 0
 		for bn, batch in enumerate(batch_iterator):
 			feed_dict = self.load_batch(batch, train=False)
-			l2_loss, l2_snr, Y, P = self.sess.run([l2_loss_op, l2_snr_op, y_flat, p_flat], feed_dict=feed_dict)
+			l2_loss, l2_snr, Y, P = self.sess.run([l2_loss_op, l2_snr_op, y_flat, p_flat], 
+													feed_dict=feed_dict)
 			 
 			tot_l2_loss += l2_loss
 			tot_snr += l2_snr

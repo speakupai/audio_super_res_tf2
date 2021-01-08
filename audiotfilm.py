@@ -19,8 +19,8 @@ from tensorflow.keras.initializers import RandomNormal, Orthogonal
 DRATE = 2
 class AudioTfilm(Model):
 
-  def __init__(self, from_ckpt=False, n_dim=None, r=2, pool_size = 4, strides=4,
-               opt_params=default_opt, log_prefix='./run'):
+  def __init__(self, from_ckpt=False, n_dim=None, r=2, pool_size = 4, 
+              strides=4, opt_params=default_opt, log_prefix='./run'):
     # perform the usual initialization
     self.r = r
     self.pool_size = pool_size
