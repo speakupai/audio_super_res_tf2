@@ -3,15 +3,15 @@ import time
 
 import numpy as np
 import tensorflow as tf
-import cPickle
+import pickle
 
 import librosa
-from keras import backend as K
+from tensorflow.keras import backend as K
 from dataset import DataSet
-from keras.layers import Input, LSTM, Dense
-from keras.models import Model
+from tensorflow.keras.layers import Input, LSTM, Dense
+from tensorflow.keras.models import Model
 from tqdm import tqdm
-from keras import optimizers
+from tensorflow.keras import optimizers
 
 # ----------------------------------------------------------------------------
 
@@ -24,17 +24,12 @@ class Model2(object):
 
   def __init__(self, r=2, opt_params=default_opt):
 
-    gpu_options = tf.GPUOptions(allow_growth=True)
-    self.sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, allow_soft_placement=True))
-    K.set_session(self.sess) # pass keras the session
-    
     # save params
     self.opt_params = opt_params
     self.layers     = opt_params['layers']
   
   def get_power(self, x):
     S = librosa.stft(x, 2048)
-    p = np.angle(S)
     S = np.log(np.abs(S)**2 + 1e-8)
     return S
 

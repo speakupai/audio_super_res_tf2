@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-from tensorflow.contrib.rnn import RNNCell
-from tensorflow.contrib.layers.python.layers import layers
+from tensorflow.keras.layers import RNN, LSTM
+'''
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import op_def_registry
 from tensorflow.python.framework import ops
@@ -16,8 +16,9 @@ from tensorflow.python.ops import rnn_cell_impl
 from tensorflow.python.ops import variable_scope as vs
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.util import nest
+'''
 
-class ConvRNNCell(RNNCell):
+class ConvRNNCell(RNN):
   """Abstract object representing an Convolutional RNN cell.
   """
 
@@ -52,7 +53,7 @@ class ConvRNNCell(RNNCell):
     zeros = tf.zeros([batch_size, shape[0], shape[1], num_features * 2]) 
     return zeros
 
-class BasicConvLSTMCell(RNNCell):
+class BasicConvLSTMCell(RNN):
   """Basic Conv LSTM recurrent network cell. The
   """
 
@@ -74,7 +75,7 @@ class BasicConvLSTMCell(RNNCell):
       #logging.warn("%s: Using a concatenated state is slower and will soon be "
       #             "deprecated.  Use state_is_tuple=True.", self)
     if input_size is not None:
-      logging.warn("%s: The input_size parameter is deprecated.", self)
+      print("%s: The input_size parameter is deprecated.", self)
     self.shape = shape 
     self.filter_size = filter_size
     self.num_features = num_features 
@@ -82,10 +83,12 @@ class BasicConvLSTMCell(RNNCell):
     self._state_is_tuple = state_is_tuple
     self._activation = activation
 
+  '''
   @property
   def state_size(self):
     return (LSTMStateTuple(self._num_units, self._num_units)
             if self._state_is_tuple else 2 * self._num_units)
+  '''
 
   @property
   def output_size(self):
