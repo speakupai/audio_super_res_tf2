@@ -3,7 +3,7 @@
 import tensorflow as tf
 import numpy as np
 import tensorflow.keras.backend as K
-from dataset import Dataset
+from dataset import DataSet
 
 import os
 import time
@@ -50,7 +50,6 @@ class Model(object):
 
 	def get_power(self, x):
 		S = librosa.stft(x, 2048)
-		p = np.angle(S)
 		S = np.log(np.abs(S)**2 + 1e-8)
 
 		return S
