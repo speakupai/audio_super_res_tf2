@@ -36,7 +36,7 @@ class AudioTfilm(Model):
       x = X
       L = self.layers
       n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
-      n_blocks = [ 128, 64, 32, 16, 8]
+      #n_blocks = [ 128, 64, 32, 16, 8]
       n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
       downsampling_l = []
 
@@ -44,13 +44,13 @@ class AudioTfilm(Model):
 
       def _make_normalizer(x_in, n_filters, n_block):
         """applies an lstm layer on top of x_in"""        
-        x_shape = tf.shape(x_in)
-        n_steps = x_shape[1] / n_block # will be 32 at training
+        #x_shape = tf.shape(x_in)
+        #n_steps = x_shape[1] / n_block # will be 32 at training
         
         x_in_down = (MaxPool1D(pool_length=n_block, border_mode='valid'))(x_in)
          
         # pooling to reduce dimension 
-        x_shape = tf.shape(x_in_down)
+        #x_shape = tf.shape(x_in_down)
         
         x_rnn = LSTM(units = n_filters, return_sequences = True)(x_in_down)
         
@@ -78,7 +78,7 @@ class AudioTfilm(Model):
       for l, nf, fs in zip(range(L), n_filters, n_filtersizes):
         with tf.name_scope('downsc_conv%d' % l):
           x = (Conv1D(filters=nf, kernel_size=fs, dilation_rate=DRATE,
-                  activation=None, padding='same', init='orthogonal'))(x)
+              activation=None, padding='same', init='orthogonal'))(x)
           x = (MaxPool1D(pool_size=2,padding='valid'))(x)
           x = LeakyReLU(0.2)(x)
 
