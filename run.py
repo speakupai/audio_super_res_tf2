@@ -156,12 +156,6 @@ def train(args):
   r = Y_train[0].shape[1] / X_train[0].shape[1]
   assert n_chan == 1
 
-  # Train seq2seq model
-  if(args.model == 'seq2seq'):
-    model = Model2()
-    model.run(X_train, Y_train, X_val, Y_val, n_epoch=args.epochs,
-              r=args.r, speaker=args.speaker, grocery=args.grocery)
-
   else:
     # create model
     model = get_model(args, n_dim, r, from_ckpt=False, train=True)
