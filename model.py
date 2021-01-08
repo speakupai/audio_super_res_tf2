@@ -84,9 +84,6 @@ class Model(object):
 		# initialize the optimizer variabLes
 		optimizer_vars=[v for v in tf.global_variables() if 
 		'optimizer/' in v.name or 'Adam' in v.name]
-	
-		init = tf.initialize_all_variables()
-		self.sess.run(init)
 
 		return train_op
 
@@ -98,37 +95,37 @@ class Model(object):
 		P = self.predictions
 
 		# compute l2 loss
-		sqrt_l2_loss = tf.sqrt(tf.reduce_mean((P-Y)**2 + 1e-6, axis=[1,2]))
-		sqrn_l2_norm = tf.sqrt(tf.reduce_mean(Y**2, axis=[1,2]))
-		snr = 20 * tf.log(sqrn_l2_norm / sqrt_l2_loss + 1e-8) / tf.log(10.)
+		sqrt_l2_loss = tf.math.sqrt(tf.math.reduce_mean((P-Y)**2 + 1e-6, axis=[1,2]))
+		sqrn_l2_norm = tf.math.sqrt(tf.math.reduce_mean(Y**2, axis=[1,2]))
+		snr = 20 * tf.math.log(sqrn_l2_norm / sqrt_l2_loss + 1e-8) / tf.math.log(10.)
 
-		avg_sqrt_l2_loss = tf.reduce_mean(sqrt_l2_loss, axis=0)
-		avg_snr = tf.reduce_mean(snr, axis=0)
+		avg_sqrt_l2_loss = tf.math.reduce_mean(sqrt_l2_loss, axis=0)
+		avg_snr = tf.math.reduce_mean(snr, axis=0)
 
 		# track losses
 		tf.summary.scalar('l2_loss', avg_sqrt_l2_loss)
 		tf.summary.scalar('snr', avg_snr)
 
 		# save losses into collection
-		tf.add_to_collection('losses', avg_sqrt_l2_loss)
-		tf.add_to_collection('losses', avg_snr)
+		tf.Graph.add_to_collection('losses', avg_sqrt_l2_loss)
+		tf.Graph.add_to_collection('losses', avg_snr)
 
 		# save predicted and real outputs to collection
 		y_flat = tf.reshape(Y, [-1]) 
 		p_flat = tf.reshape(P, [-1])
-		tf.add_to_collection('hrs', y_flat)
-		tf.add_to_collection('hrs', p_flat)
+		tf.Graph.add_to_collection('hrs', y_flat)
+		tf.Graph.add_to_collection('hrs', p_flat)
 
 		return avg_sqrt_l2_loss
 
 	def get_params(self):
-		return [ v for v in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+		return [ v for v in tf.Graph.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
 		if 'soundnet' not in v.name]
 
 	def create_optimzier(self, opt_params):
 		if opt_params['alg'] == 'adam':
 			lr, b1, b2 = opt_params['lr'], opt_params['b1'], opt_params['b2']
-			optimizer = tf.train.AdamOptimizer(lr, b1, b2)
+			optimizer = tf.keras.optimizer.Adam(lr, b1, b2)
 		else:
 			raise ValueError('Invalid optimizer: ' + opt_params['alg'])
 		return optimizer

@@ -11,6 +11,7 @@ This implementation is based on the following
 * Numpy 1.19
 * Scipy 1.6
 
-## Usage
+## Model Implemented
+Only AudioTFile is implemented here because the original repo stated that it is the best model.
 
 ### To be Updated
