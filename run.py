@@ -13,7 +13,6 @@ import pickle
 
 from model import default_opt
 from io import load_h5, upsample_wav
-from model2 import Model2
 from audiotfilm import AudioTfilm
 
 # ----------------------------------------------------------------------------
@@ -156,13 +155,12 @@ def train(args):
   r = Y_train[0].shape[1] / X_train[0].shape[1]
   assert n_chan == 1
 
-  else:
-    # create model
-    model = get_model(args, n_dim, r, from_ckpt=False, train=True)
-    # train model
-    model.fit(X_train, Y_train, X_val, Y_val, n_epoch=args.epochs,
-              r=args.r, speaker=args.speaker, grocery=args.grocery,
-              piano=args.piano, calc_full_snr = full)
+  # create model
+  model = get_model(args, n_dim, r, from_ckpt=False, train=True)
+  # train model
+  model.fit(X_train, Y_train, X_val, Y_val, n_epoch=args.epochs,
+          r=args.r, speaker=args.speaker, grocery=args.grocery,
+          piano=args.piano, calc_full_snr = full)
 
 def eval(args):
   # load model
