@@ -11,8 +11,9 @@ import argparse
 import numpy as np
 import pickle
 
+import tensorflow as tf
 from model import default_opt
-from io import load_h5, upsample_wav
+from in_out import load_h5, upsample_wav
 from audiotfilm import AudioTfilm
 
 # ----------------------------------------------------------------------------
