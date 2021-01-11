@@ -19,8 +19,11 @@ default_opt   = { 'alg': 'adam', 'lr': 1e-4, 'b1': 0.99, 'b2': 0.999,
 class Model(object):
 	def __init__(self, from_ckpt=False, n_dim=None, r=2, opt_params=default_opt):
 		# create session
-		gpu = tf.config.experimental.list_physical_devices('GPU')
-		tf.config.experimental.set_memory_growth(gpu, enable=True)
+		try: 
+			gpu = tf.config.experimental.list_physical_devices('GPU')
+			tf.config.experimental.set_memory_growth(gpu, enable=True)
+		except:
+			pass
 		
 		self.opt_params = opt_params
 		self.layers = opt_params['layers']
@@ -29,7 +32,7 @@ class Model(object):
 			 # initiate model with existing weights
 			pass
 		else:
-    		# create inputs
+    		# create inputs not needed in tf2??
 			X = tf.Variable(initial_value=1.0, shape=(None, None, 1), name='X')
 			y = tf.Variable(initial_value=1.0, shape=(None, None, 1), name='y')
 			alpha = tf.Variable(initial_value=1.0, shape=(), name='alpha') # weight multiplier
