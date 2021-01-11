@@ -26,8 +26,8 @@ def make_parser():
   train_parser = subparsers.add_parser('train')
   train_parser.set_defaults(func=train)
 
-  train_parser.add_argument('--model', default='audiounet',
-    choices=('audiounet'), help='only audiotfilm used')
+  train_parser.add_argument('--model', default='audiotfilm',
+    choices=('audiotfilm'), help='only audiotfilm used')
   
   train_parser.add_argument('--train', required=True,
     help='path to h5 archive of training patches')
