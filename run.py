@@ -120,8 +120,10 @@ def train(args):
   # create model
   model = get_model(args, n_dim, r, from_ckpt=False, train=True)
   # train model
-  model.fit(X_train, Y_train, X_val, Y_val, n_epoch=args.epochs,
-          r=args.r, speaker=args.speaker, calc_full_snr = full)
+  '''model.fit(X_train, Y_train, X_val, Y_val, epochs=args.epochs,
+            r=args.r, speaker=args.speaker, calc_full_snr = full)'''
+
+  model.fit(X_train, Y_train, epochs=args.epochs)
 
 def eval(args):
   # load model
