@@ -24,19 +24,23 @@ class AudioTfilm(tf.keras.Model):
 
   def __init__(self, from_ckpt=False, n_dim=None, r=2, pool_size = 4, 
               strides=4, opt_params=default_opt, log_prefix='./run'):
-    # perform the usual initialization
-    self.r = r
-    self.pool_size = pool_size
-    self.strides = strides
-    self.from_ckpt=from_ckpt,
-    self.n_dim=n_dim,
-    self.r=r,
-    self.opt_params=opt_params
+              super(AudioTfilm, self).__init__()
+              # perform the usual initialization
+              self.r = r
+              self.pool_size = pool_size
+              self.strides = strides
+              self.from_ckpt=from_ckpt,
+              self.n_dim=n_dim,
+              self.r=r,
+              self.opt_params=opt_params
 
+  def call(self, inputs):
+    x = self.create_model(self.n_dim, self.r)(inputs)
+    return x
+  
   def create_model(self, n_dim, r):
     # load inputs
     with tf.name_scope('generator'):
-      x = X
       L = self.layers
       n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
       #n_blocks = [ 128, 64, 32, 16, 8]
@@ -46,14 +50,8 @@ class AudioTfilm(tf.keras.Model):
       print ('building model...')
 
       def _make_normalizer(x_in, n_filters, n_block):
-        """applies an lstm layer on top of x_in"""        
-        #x_shape = tf.shape(x_in)
-        #n_steps = x_shape[1] / n_block # will be 32 at training
-        
+        """applies an lstm layer on top of x_in"""
         x_in_down = (MaxPool1D(pool_length=n_block, border_mode='valid'))(x_in)
-         
-        # pooling to reduce dimension 
-        #x_shape = tf.shape(x_in_down)
         
         x_rnn = LSTM(units = n_filters, return_sequences = True)(x_in_down)
         
@@ -87,9 +85,6 @@ class AudioTfilm(tf.keras.Model):
 
           # create and apply the normalizer
           nb = 128 / (2**l)
-        
-          '''params_before = np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]) 
-          params_after = np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()])'''
 
           x_norm = _make_normalizer(x, nf, nb)
           x = _apply_normalizer(x, x_norm, nf, nb)
