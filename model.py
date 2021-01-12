@@ -32,11 +32,6 @@ class Model(object):
 			 # initiate model with existing weights
 			pass
 		else:
-    		# create inputs not needed in tf2??
-			X = tf.Variable(initial_value=1.0, shape=(None, None, 1), name='X')
-			y = tf.Variable(initial_value=1.0, shape=(None, None, 1), name='y')
-			alpha = tf.Variable(initial_value=1.0, shape=(), name='alpha') # weight multiplier
-
 			# save inputs
 			self.inputs = (X, y, alpha)
 			tf.Graph.add_to_collection('inputs', X)
