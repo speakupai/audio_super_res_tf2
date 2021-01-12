@@ -35,19 +35,24 @@ class AudioTfilm(tf.keras.Model):
               self.opt_params=opt_params
 
   def call(self, inputs):
+    print ('building model...')
     x = self.create_model(self.n_dim, self.r)(inputs)
     return x
   
   def create_model(self, n_dim, r):
     # load inputs
-    with tf.name_scope('generator'):
+    place = 0
+    return place
+  
+  # define generator
+  def generator(self):
       L = self.layers
       n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
       #n_blocks = [ 128, 64, 32, 16, 8]
       n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
       downsampling_l = []
 
-      print ('building model...')
+      
 
       def _make_normalizer(x_in, n_filters, n_block):
         """applies an lstm layer on top of x_in"""
@@ -131,7 +136,7 @@ class AudioTfilm(tf.keras.Model):
         x = SubPixel1D(x, r=2) 
 
       g = Add()([x, X])
-    return g
+      return g
 
   def predict(self, X):
     assert len(X) == 1

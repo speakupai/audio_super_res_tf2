@@ -74,4 +74,5 @@ r = Y_train[0].shape[1] / X_train[0].shape[1]
 assert n_chan == 1
 
 model = AudioTfilm()
-model.summary()
+model.compile()
+model.fit(X_train, Y_train)
