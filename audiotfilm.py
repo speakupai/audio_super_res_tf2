@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 
 from scipy import interpolate
-from model import default_opt
 
 from layers.subpixel import SubPixel1D, SubPixel1D_v2
 
@@ -16,6 +15,10 @@ from tensorflow.keras.layers import LSTM, BatchNormalization, LeakyReLU
 from tensorflow.keras.initializers import RandomNormal, Orthogonal
 
 # ----------------------------------------------------------------------------
+# set default options
+default_opt   = { 'alg': 'adam', 'lr': 1e-4, 'b1': 0.99, 'b2': 0.999,
+                  'layers': 2, 'batch_size': 128 }
+
 DRATE = 2
 class AudioTfilm(tf.keras.Model):
 
@@ -32,13 +35,11 @@ class AudioTfilm(tf.keras.Model):
 
   def create_model(self, n_dim, r):
     # load inputs
-    X, _, _ = self.inputs
-
     with tf.name_scope('generator'):
       x = X
       L = self.layers
       n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
-      n_blocks = [ 128, 64, 32, 16, 8]
+      #n_blocks = [ 128, 64, 32, 16, 8]
       n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
       downsampling_l = []
 
@@ -46,13 +47,13 @@ class AudioTfilm(tf.keras.Model):
 
       def _make_normalizer(x_in, n_filters, n_block):
         """applies an lstm layer on top of x_in"""        
-        x_shape = tf.shape(x_in)
-        n_steps = x_shape[1] / n_block # will be 32 at training
+        #x_shape = tf.shape(x_in)
+        #n_steps = x_shape[1] / n_block # will be 32 at training
         
         x_in_down = (MaxPool1D(pool_length=n_block, border_mode='valid'))(x_in)
          
         # pooling to reduce dimension 
-        x_shape = tf.shape(x_in_down)
+        #x_shape = tf.shape(x_in_down)
         
         x_rnn = LSTM(units = n_filters, return_sequences = True)(x_in_down)
         
