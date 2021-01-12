@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from scipy import interpolate
-from model import Model, default_opt
+from model import default_opt
 
 from layers.subpixel import SubPixel1D, SubPixel1D_v2
 
@@ -17,7 +17,7 @@ from tensorflow.keras.initializers import RandomNormal, Orthogonal
 
 # ----------------------------------------------------------------------------
 DRATE = 2
-class AudioTfilm(Model):
+class AudioTfilm(tf.keras.Model):
 
   def __init__(self, from_ckpt=False, n_dim=None, r=2, pool_size = 4, 
               strides=4, opt_params=default_opt, log_prefix='./run'):
@@ -25,8 +25,10 @@ class AudioTfilm(Model):
     self.r = r
     self.pool_size = pool_size
     self.strides = strides
-    Model.__init__(self, from_ckpt=from_ckpt, n_dim=n_dim, r=r,
-                   opt_params=opt_params)
+    self.from_ckpt=from_ckpt,
+    self.n_dim=n_dim,
+    self.r=r,
+    self.opt_params=opt_params
 
   def create_model(self, n_dim, r):
     # load inputs

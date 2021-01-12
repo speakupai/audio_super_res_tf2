@@ -16,35 +16,11 @@ default_opt   = { 'alg': 'adam', 'lr': 1e-4, 'b1': 0.99, 'b2': 0.999,
                   'layers': 2, 'batch_size': 128 }
 
 # create generic model
-class Model(object):
+class utils():
 	def __init__(self, from_ckpt=False, n_dim=None, r=2, opt_params=default_opt):
-		# create session
-		try: 
-			gpu = tf.config.experimental.list_physical_devices('GPU')
-			tf.config.experimental.set_memory_growth(gpu, enable=True)
-		except:
-			pass
+		self.n_dim = n_dim
+		self.r = r
 		
-		self.opt_params = opt_params
-		self.layers = opt_params['layers']
-		
-		if from_ckpt:
-			 # initiate model with existing weights
-			pass
-		else:
-			# save inputs
-			self.inputs = (X, y, alpha)
-			tf.Graph.add_to_collection('inputs', X)
-			tf.Graph.add_to_collection('inputs', y)
-			tf.Graph.add_to_collection('inputs', alpha)
-
-		# create model outputs
-		self.predictions = self.create_model(n_dim, r)
-		tf.Graph.add_to_collection('preds', self.predictions)
-
-		# init the model
-		model.compile()
-		''' complete the model, it needs the initializer'''
 
 	def get_power(self, x):
 		S = librosa.stft(x, 2048)
@@ -84,9 +60,6 @@ class Model(object):
 		'optimizer/' in v.name or 'Adam' in v.name]
 
 		return train_op
-
-	def create_model(self, n_dim, r):
-		raise NotImplementedError()
 
 	def create_objective(self, X, Y, opt_params):
 		# load model output and true output
