@@ -16,6 +16,7 @@ from tensorflow.keras.layers import LSTM, BatchNormalization, LeakyReLU
 from tensorflow.keras.initializers import RandomNormal, Orthogonal
 
 from utils import _apply_normalizer, _make_normalizer
+from layers import subpixel
 
 def make_parser():
   parser = argparse.ArgumentParser()
@@ -125,7 +126,7 @@ def audiotfilm(X_train, Y_train, layers):
         x = Dropout(0.5)(x)
         x = Activation('relu')(x)
         # (-1, n, f)
-        x = SubPixel1D(x, r=2) 
+        x = subpixel.SubPixel1D(x, r=2) 
  
         # create and apply the normalizer
         x_norm = _make_normalizer(x, nf, nb)
@@ -138,9 +139,9 @@ def audiotfilm(X_train, Y_train, layers):
       with tf.name_scope('lastconv'):
         x = Conv1D(filters=2, kernel_size=9, 
                 activation=None, padding='same', init='RandomNormal')(x)    
-        x = SubPixel1D(x, r=2) 
+        x = subpixel.SubPixel1D(x, r=2) 
 
-      g = Add()([x, X])
+      g = Add()([x, X_train])
       return g
     outputs = tf.keras.layers.Conv1D(32, 3)(inputs)
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
@@ -150,7 +151,7 @@ def audiotfilm(X_train, Y_train, layers):
     
     return model
 
-model = audiotfilm()
+model = audiotfilm(X_train, Y_train, layers)
 model.compile()
 model.fit(X_train, Y_train)
 model.summary()

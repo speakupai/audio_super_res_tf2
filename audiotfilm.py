@@ -4,6 +4,7 @@ import tensorflow as tf
 from scipy import interpolate
 
 from layers.subpixel import SubPixel1D, SubPixel1D_v2
+from utils import _make_normalizer, _apply_normalizer
 
 import tensorflow.keras.backend as K
 from tensorflow.keras.layers import MaxPool1D, MaxPool2D, AveragePooling1D
@@ -47,31 +48,6 @@ class AudioTfilm(tf.keras.Model):
     n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
     n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
     downsampling_l = []
-
-    def _make_normalizer(x_in, n_filters, n_block):
-      """applies an lstm layer on top of x_in"""
-      x_in_down = (MaxPool1D(pool_length=n_block, border_mode='valid'))(x_in)
-        
-      x_rnn = LSTM(units = n_filters, return_sequences = True)(x_in_down)
-        
-      # output: (-1, n_steps, n_filters)
-      return x_rnn
-
-    def _apply_normalizer(x_in, x_norm, n_filters, n_block):
-      x_shape = tf.shape(x_in)
-      n_steps = x_shape[1] / n_block # will be 32 at training
-
-      # reshape input into blocks
-      x_in = tf.reshape(x_in, shape=(-1, n_steps, n_block, n_filters))
-      x_norm = tf.reshape(x_norm, shape=(-1, n_steps, 1, n_filters))
-        
-      # multiply
-      x_out = x_norm * x_in
-
-      # return to original shape
-      x_out = tf.reshape(x_out, shape=x_shape)
-
-      return x_out
 
     # downsampling layers
     for l, nf, fs in zip(range(L), n_filters, n_filtersizes):
