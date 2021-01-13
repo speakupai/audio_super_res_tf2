@@ -6,13 +6,11 @@ import numpy as np
 from in_out import load_h5
 import argparse
 
-from tensorflow.keras.layers import MaxPool1D, MaxPool2D, AveragePooling1D
+from tensorflow.keras.layers import MaxPool1D
 from tensorflow.keras.layers import Concatenate, Add
 from tensorflow.keras.layers import Activation, Dropout
-from tensorflow.keras.layers import Conv1D, UpSampling1D
-from tensorflow.keras.layers import LSTM, BatchNormalization, LeakyReLU
-
-from tensorflow.keras.initializers import RandomNormal, Orthogonal
+from tensorflow.keras.layers import Conv1D
+from tensorflow.keras.layers import LeakyReLU
 
 from utils import _apply_normalizer, _make_normalizer
 from layers import subpixel

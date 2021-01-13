@@ -1,19 +1,14 @@
 import numpy as np
 import tensorflow as tf
 
-from scipy import interpolate
-
-from layers.subpixel import SubPixel1D, SubPixel1D_v2
+from layers.subpixel import SubPixel1D
 from utils import _make_normalizer, _apply_normalizer
 
-import tensorflow.keras.backend as K
-from tensorflow.keras.layers import MaxPool1D, MaxPool2D, AveragePooling1D
+from tensorflow.keras.layers import MaxPool1D
 from tensorflow.keras.layers import Concatenate, Add
 from tensorflow.keras.layers import Activation, Dropout
-from tensorflow.keras.layers import Conv1D, UpSampling1D
-from tensorflow.keras.layers import LSTM, BatchNormalization, LeakyReLU
-
-from tensorflow.keras.initializers import RandomNormal, Orthogonal
+from tensorflow.keras.layers import Conv1D
+from tensorflow.keras.layers import LeakyReLU
 
 # ----------------------------------------------------------------------------
 # set default options

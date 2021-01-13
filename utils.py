@@ -4,18 +4,12 @@ import tensorflow as tf
 from tensorflow.keras.layers import MaxPool1D
 from tensorflow.keras.layers import LSTM
 import numpy as np
-import tensorflow.keras.backend as K
-from dataset import DataSet
 
-import os
-import time
-
-import pickle
 import librosa
 
 def _make_normalizer(x_in, n_filters, n_block):
 	"""applies an lstm layer on top of x_in"""
-	x_in_down = (MaxPool1D(pool_size=n_block, padding='valid'))(x_in)        
+	x_in_down = MaxPool1D(pool_size=int(n_block), padding='valid')(x_in)
 	x_rnn = LSTM(units = n_filters, return_sequences = True)(x_in_down)
 
 	return x_rnn
@@ -71,3 +65,29 @@ def calc_snr2(Y, P):
 	snr = 20 * np.log(sqrn_l2_norm / sqrt_l2_loss + 1e-8) / np.log(10.)
 	avg_snr = np.mean(snr, axis=0)
 	return avg_snr
+
+'''
+  def predict(self, X):
+    assert len(X) == 1
+    x_sp = spline_up(X, self.r)
+    x_sp = x_sp[:len(x_sp) - (len(x_sp) % (2**(self.layers+1)))]
+    X = x_sp.reshape((1,len(x_sp),1))
+    feed_dict = self.load_batch((X,X), train=False)
+    return (self.predictions, feed_dict)
+
+# ----------------------------------------------------------------------------
+# helpers
+def spline_up(x_lr, r):
+  x_lr = x_lr.flatten()
+  x_hr_len = len(x_lr) * r
+  x_sp = np.zeros(x_hr_len)
+  
+  i_lr = np.arange(x_hr_len, step=r)
+  i_hr = np.arange(x_hr_len)
+  
+  f = interpolate.splrep(i_lr, x_lr)
+
+  x_sp = interpolate.splev(i_hr, f)
+
+  return x_sp
+'''
