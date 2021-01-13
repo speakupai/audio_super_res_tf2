@@ -15,11 +15,9 @@ import librosa
 
 def _make_normalizer(x_in, n_filters, n_block):
 	"""applies an lstm layer on top of x_in"""
-	x_in_down = (MaxPool1D(pool_length=n_block, border_mode='valid'))(x_in)
-        
+	x_in_down = (MaxPool1D(pool_size=n_block, padding='valid'))(x_in)        
 	x_rnn = LSTM(units = n_filters, return_sequences = True)(x_in_down)
-       
-	# output: (-1, n_steps, n_filters)
+
 	return x_rnn
 
 def _apply_normalizer(x_in, x_norm, n_filters, n_block):
@@ -57,18 +55,9 @@ def loss(Y, y_hat):
 
 	# compute l2 loss
 	sqrt_l2_loss = tf.math.sqrt(tf.math.reduce_mean((P-Y)**2 + 1e-6, axis=[1,2]))
-	#sqrn_l2_norm = tf.math.sqrt(tf.math.reduce_mean(Y**2, axis=[1,2]))
-	#snr = 20 * tf.math.log(sqrn_l2_norm / sqrt_l2_loss + 1e-8) / tf.math.log(10.)
-
 	avg_sqrt_l2_loss = tf.math.reduce_mean(sqrt_l2_loss, axis=0)
-	#avg_snr = tf.math.reduce_mean(snr, axis=0)
 
 	return avg_sqrt_l2_loss
-
-'''def create_gradients(loss, params):
-	gv = compute_gradients(loss, params)
-	g, v = zip(*gv)
-	return g'''
 
 def calc_snr(Y, Pred):
 	sqrt_l2_loss = np.sqrt(np.mean((Pred-Y)**2+1e-6, axis=(0, 1)))

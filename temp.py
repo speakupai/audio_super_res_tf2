@@ -88,11 +88,12 @@ def audiotfilm(X_train, Y_train, layers):
     n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
     downsampling_l = []
 
+    x = inputs
     # downsampling layers
     for l, nf, fs in zip(range(L), n_filters, n_filtersizes):
       with tf.name_scope('downsc_conv%d' % l):
         x = (Conv1D(filters=nf, kernel_size=fs, dilation_rate=DRATE,
-            activation=None, padding='same', init='orthogonal'))(x)
+            activation=None, padding='same', kernel_initializer='orthogonal'))(x)
         x = (MaxPool1D(pool_size=2,padding='valid'))(x)
         x = LeakyReLU(0.2)(x)
 
@@ -106,7 +107,7 @@ def audiotfilm(X_train, Y_train, layers):
     # bottleneck layer
     with tf.name_scope('bottleneck_conv'):
         x = (Conv1D(filters=n_filters[-1], kernel_size=n_filtersizes[-1], dilation_rate=DRATE,
-            activation=None, padding='same', init='orthogonal'))(x)
+            activation=None, padding='same', kernel_initializer='orthogonal'))(x)
         x = (MaxPool1D(pool_size=2,padding='valid'))(x)
         x = Dropout(0.5)(x)
         x = LeakyReLU(0.2)(x)
@@ -121,7 +122,7 @@ def audiotfilm(X_train, Y_train, layers):
       with tf.name_scope('upsc_conv%d' % l):
         # (-1, n/2, 2f)
         x = (Conv1D(filters=2*nf, kernel_size=fs, dilation_rate=DRATE,
-            activation=None, padding='same', init='orthogonal'))(x)
+            activation=None, padding='same', kernel_initializer='orthogonal'))(x)
         
         x = Dropout(0.5)(x)
         x = Activation('relu')(x)
@@ -137,8 +138,8 @@ def audiotfilm(X_train, Y_train, layers):
       
       # final conv layer
       with tf.name_scope('lastconv'):
-        x = Conv1D(filters=2, kernel_size=9, 
-                activation=None, padding='same', init='RandomNormal')(x)    
+        x = Conv1D(filters=2, kernel_size=9, activation=None, 
+            padding='same', kernel_initializer='RandomNormal')(x)    
         x = subpixel.SubPixel1D(x, r=2) 
 
       g = Add()([x, X_train])
