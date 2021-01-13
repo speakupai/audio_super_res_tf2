@@ -29,24 +29,20 @@ class AudioTfilm(tf.keras.Model):
               self.r = r
               self.pool_size = pool_size
               self.strides = strides
-              self.from_ckpt=from_ckpt,
               self.n_dim=n_dim,
               self.r=r,
               self.opt_params=opt_params
 
   def call(self, inputs):
     print ('building model...')
-    x = self.create_model(self.n_dim, self.r)
+    #x = self.create_model(self.n_dim, self.r)
+    x = self.generator(inputs)
     return x
-  
-  def create_model(self, n_dim, r):
-    # load inputs
-    place = 0
-    return place
   
   # define generator
   def generator(self, X_train):
     X = X_train
+    print(type(X_train))
     L = self.layers
     n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
     n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
