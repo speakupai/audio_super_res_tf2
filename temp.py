@@ -7,16 +7,22 @@ from in_out import load_h5
 import argparse
 from audiotfilm import AudioTfilm
 
+from tensorflow.keras.layers import MaxPool1D, MaxPool2D, AveragePooling1D
+from tensorflow.keras.layers import Concatenate, Add
+from tensorflow.keras.layers import Activation, Dropout
+from tensorflow.keras.layers import Conv1D, UpSampling1D
+from tensorflow.keras.layers import LSTM, BatchNormalization, LeakyReLU
+
+from tensorflow.keras.initializers import RandomNormal, Orthogonal
+
+from utils import _apply_normalizer, _make_normalizer
+
 def make_parser():
   parser = argparse.ArgumentParser()
   subparsers = parser.add_subparsers(title='Commands')
 
   # train
   train_parser = subparsers.add_parser('train')
-  #train_parser.set_defaults(func=train)
-
-  train_parser.add_argument('--model', default='audiotfilm',
-    choices=('audiotfilm'), help='only audiotfilm used')
   
   train_parser.add_argument('--train', required=True,
     help='path to h5 archive of training patches')
@@ -35,13 +41,7 @@ def make_parser():
   
   train_parser.add_argument('--layers', default=4, type=int,
     help='number of layers in each of the D and U halves of the network')
-  
-  train_parser.add_argument('--alg', default='adam',
-    help='optimization algorithm')
-  
-  train_parser.add_argument('--lr', default=1e-3, type=float,
-    help='learning rate')
-  
+    
   train_parser.add_argument('--r', type=int, default=4,
     help='upscaling factor')
   
@@ -52,8 +52,6 @@ def make_parser():
     help='size of pooling window')
   
   train_parser.add_argument('--strides', type=int, default=4, help='pooling stide')
-  
-  train_parser.add_argument('--full', default='false', choices=('true', 'false'))
 
   return parser
 
@@ -70,12 +68,89 @@ X_val, Y_val = load_h5(get_inputs['val'])
 n_dim, n_chan = Y_train[0].shape
 
 # get the upscaling factor 'r'
-r = Y_train[0].shape[1] / X_train[0].shape[1]
+r = get_inputs['r']
 assert n_chan == 1
 
-def audiotfilm():
+# get variables
+epochs = get_inputs['epochs']
+batch_size = get_inputs['batch_size']
+layers = get_inputs['layers']
+speaker = get_inputs['speaker']
+pool_size = get_inputs['pool_size']
+strides = get_inputs['strides']
+DRATE=2
+
+def audiotfilm(X_train, Y_train, layers):
+    inputs = tf.keras.Input(shape=(X_train.shape[1], X_train.shape[2]))
+    L = layers
+    n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
+    n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
+    downsampling_l = []
+
+    # downsampling layers
+    for l, nf, fs in zip(range(L), n_filters, n_filtersizes):
+      with tf.name_scope('downsc_conv%d' % l):
+        x = (Conv1D(filters=nf, kernel_size=fs, dilation_rate=DRATE,
+            activation=None, padding='same', init='orthogonal'))(x)
+        x = (MaxPool1D(pool_size=2,padding='valid'))(x)
+        x = LeakyReLU(0.2)(x)
+
+        # create and apply the normalizer
+        nb = 128 / (2**l)
+        x_norm = _make_normalizer(x, nf, nb)
+        x = _apply_normalizer(x, x_norm, nf, nb)
+
+        downsampling_l.append(x)
+
+    # bottleneck layer
+    with tf.name_scope('bottleneck_conv'):
+        x = (Conv1D(filters=n_filters[-1], kernel_size=n_filtersizes[-1], dilation_rate=DRATE,
+            activation=None, padding='same', init='orthogonal'))(x)
+        x = (MaxPool1D(pool_size=2,padding='valid'))(x)
+        x = Dropout(0.5)(x)
+        x = LeakyReLU(0.2)(x)
+
+        # create and apply the normalizer
+        nb = 128 / (2**L)
+        x_norm = _make_normalizer(x, n_filters[-1], nb)
+        x = _apply_normalizer(x, x_norm, n_filters[-1], nb)
+
+    # upsampling layers
+    for l, nf, fs, l_in in (zip(range(L), n_filters, n_filtersizes, downsampling_l)):
+      with tf.name_scope('upsc_conv%d' % l):
+        # (-1, n/2, 2f)
+        x = (Conv1D(filters=2*nf, kernel_size=fs, dilation_rate=DRATE,
+            activation=None, padding='same', init='orthogonal'))(x)
+        
+        x = Dropout(0.5)(x)
+        x = Activation('relu')(x)
+        # (-1, n, f)
+        x = SubPixel1D(x, r=2) 
+ 
+        # create and apply the normalizer
+        x_norm = _make_normalizer(x, nf, nb)
+        x = _apply_normalizer(x, x_norm, nf, nb)
+        # (-1, n, 2f)
+        x = Concatenate(axis=-1)([x, l_in])
+        print ('U-Block: ', x.get_shape())
+      
+      # final conv layer
+      with tf.name_scope('lastconv'):
+        x = Conv1D(filters=2, kernel_size=9, 
+                activation=None, padding='same', init='RandomNormal')(x)    
+        x = SubPixel1D(x, r=2) 
+
+      g = Add()([x, X])
+      return g
+    outputs = tf.keras.layers.Conv1D(32, 3)(inputs)
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    model.compile(optimizer=tf.keras.optimizers.Adam(lr=1e-4,beta_1=0.9, beta_2=0.999), 
+    loss='binary_crossentorpy',
+     metrics='accuracy')
     
-model = AudioTfilm()
+    return model
+
+model = audiotfilm()
 model.compile()
 model.fit(X_train, Y_train)
 model.summary()

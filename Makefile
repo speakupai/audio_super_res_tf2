@@ -4,11 +4,8 @@ train_model:
 		--val '/home/taimur/Documents/Online Courses/Fourth Brain/Projects/Audio_super_res/speaker1 data/vctk-speaker1-val.8.16000.6.4096.h5' \
 		--epochs 120 \
 		--batch-size 64 \
-		--lr 1e-3 \
-		--model audiotfilm \
 		--r 4 \
 		--layers 4 \
 		--pool_size 8 \
-		--strides 8 \
-		--full true
+		--strides 8
 
