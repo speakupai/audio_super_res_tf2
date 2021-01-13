@@ -36,7 +36,7 @@ class AudioTfilm(tf.keras.Model):
 
   def call(self, inputs):
     print ('building model...')
-    x = self.create_model(self.n_dim, self.r)(inputs)
+    x = self.create_model(self.n_dim, self.r)
     return x
   
   def create_model(self, n_dim, r):
@@ -45,89 +45,86 @@ class AudioTfilm(tf.keras.Model):
     return place
   
   # define generator
-  def generator(self):
-      L = self.layers
-      n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
-      #n_blocks = [ 128, 64, 32, 16, 8]
-      n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
-      downsampling_l = []
+  def generator(self, X_train):
+    X = X_train
+    L = self.layers
+    n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
+    n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
+    downsampling_l = []
 
-      
-
-      def _make_normalizer(x_in, n_filters, n_block):
-        """applies an lstm layer on top of x_in"""
-        x_in_down = (MaxPool1D(pool_length=n_block, border_mode='valid'))(x_in)
+    def _make_normalizer(x_in, n_filters, n_block):
+      """applies an lstm layer on top of x_in"""
+      x_in_down = (MaxPool1D(pool_length=n_block, border_mode='valid'))(x_in)
         
-        x_rnn = LSTM(units = n_filters, return_sequences = True)(x_in_down)
+      x_rnn = LSTM(units = n_filters, return_sequences = True)(x_in_down)
         
-        # output: (-1, n_steps, n_filters)
-        return x_rnn
+      # output: (-1, n_steps, n_filters)
+      return x_rnn
 
-      def _apply_normalizer(x_in, x_norm, n_filters, n_block):
-        x_shape = tf.shape(x_in)
-        n_steps = x_shape[1] / n_block # will be 32 at training
+    def _apply_normalizer(x_in, x_norm, n_filters, n_block):
+      x_shape = tf.shape(x_in)
+      n_steps = x_shape[1] / n_block # will be 32 at training
 
-        # reshape input into blocks
-        x_in = tf.reshape(x_in, shape=(-1, n_steps, n_block, n_filters))
-        x_norm = tf.reshape(x_norm, shape=(-1, n_steps, 1, n_filters))
+      # reshape input into blocks
+      x_in = tf.reshape(x_in, shape=(-1, n_steps, n_block, n_filters))
+      x_norm = tf.reshape(x_norm, shape=(-1, n_steps, 1, n_filters))
         
-        # multiply
-        x_out = x_norm * x_in
+      # multiply
+      x_out = x_norm * x_in
 
-        # return to original shape
-        x_out = tf.reshape(x_out, shape=x_shape)
+      # return to original shape
+      x_out = tf.reshape(x_out, shape=x_shape)
 
-        return x_out
+      return x_out
 
+    # downsampling layers
+    for l, nf, fs in zip(range(L), n_filters, n_filtersizes):
+      with tf.name_scope('downsc_conv%d' % l):
+        x = (Conv1D(filters=nf, kernel_size=fs, dilation_rate=DRATE,
+            activation=None, padding='same', init='orthogonal'))(x)
+        x = (MaxPool1D(pool_size=2,padding='valid'))(x)
+        x = LeakyReLU(0.2)(x)
 
-      # downsampling layers
-      for l, nf, fs in zip(range(L), n_filters, n_filtersizes):
-        with tf.name_scope('downsc_conv%d' % l):
-          x = (Conv1D(filters=nf, kernel_size=fs, dilation_rate=DRATE,
-              activation=None, padding='same', init='orthogonal'))(x)
-          x = (MaxPool1D(pool_size=2,padding='valid'))(x)
-          x = LeakyReLU(0.2)(x)
+        # create and apply the normalizer
+        nb = 128 / (2**l)
 
-          # create and apply the normalizer
-          nb = 128 / (2**l)
+        x_norm = _make_normalizer(x, nf, nb)
+        x = _apply_normalizer(x, x_norm, nf, nb)
 
-          x_norm = _make_normalizer(x, nf, nb)
-          x = _apply_normalizer(x, x_norm, nf, nb)
+        print ('D-Block: ', x.get_shape())
+        downsampling_l.append(x)
 
-          print ('D-Block: ', x.get_shape())
-          downsampling_l.append(x)
+    # bottleneck layer
+    with tf.name_scope('bottleneck_conv'):
+        x = (Conv1D(filters=n_filters[-1], kernel_size=n_filtersizes[-1], dilation_rate=DRATE,
+            activation=None, padding='same', init='orthogonal'))(x)
+        x = (MaxPool1D(pool_size=2,padding='valid'))(x)
+        x = Dropout(0.5)(x)
+        x = LeakyReLU(0.2)(x)
 
-      # bottleneck layer
-      with tf.name_scope('bottleneck_conv'):
-          x = (Conv1D(filters=n_filters[-1], kernel_size=n_filtersizes[-1], dilation_rate=DRATE,
-                  activation=None, padding='same', init='orthogonal'))(x)
-          x = (MaxPool1D(pool_size=2,padding='valid'))(x)
-          x = Dropout(0.5)(x)
-          x = LeakyReLU(0.2)(x)
+        # create and apply the normalizer
+        nb = 128 / (2**L)
+        x_norm = _make_normalizer(x, n_filters[-1], nb)
+        x = _apply_normalizer(x, x_norm, n_filters[-1], nb)
 
-          # create and apply the normalizer
-          nb = 128 / (2**L)
-          x_norm = _make_normalizer(x, n_filters[-1], nb)
-          x = _apply_normalizer(x, x_norm, n_filters[-1], nb)
-
-      # upsampling layers
-      for l, nf, fs, l_in in (zip(range(L), n_filters, n_filtersizes, downsampling_l)):
-        with tf.name_scope('upsc_conv%d' % l):
-          # (-1, n/2, 2f)
-          x = (Conv1D(filters=2*nf, kernel_size=fs, dilation_rate=DRATE,
-                  activation=None, padding='same', init='orthogonal'))(x)
+    # upsampling layers
+    for l, nf, fs, l_in in (zip(range(L), n_filters, n_filtersizes, downsampling_l)):
+      with tf.name_scope('upsc_conv%d' % l):
+        # (-1, n/2, 2f)
+        x = (Conv1D(filters=2*nf, kernel_size=fs, dilation_rate=DRATE,
+            activation=None, padding='same', init='orthogonal'))(x)
         
-          x = Dropout(0.5)(x)
-          x = Activation('relu')(x)
-          # (-1, n, f)
-          x = SubPixel1D(x, r=2) 
+        x = Dropout(0.5)(x)
+        x = Activation('relu')(x)
+        # (-1, n, f)
+        x = SubPixel1D(x, r=2) 
  
-          # create and apply the normalizer
-          x_norm = _make_normalizer(x, nf, nb)
-          x = _apply_normalizer(x, x_norm, nf, nb)
-          # (-1, n, 2f)
-          x = Concatenate(axis=-1)([x, l_in])
-          print ('U-Block: ', x.get_shape())
+        # create and apply the normalizer
+        x_norm = _make_normalizer(x, nf, nb)
+        x = _apply_normalizer(x, x_norm, nf, nb)
+        # (-1, n, 2f)
+        x = Concatenate(axis=-1)([x, l_in])
+        print ('U-Block: ', x.get_shape())
       
       # final conv layer
       with tf.name_scope('lastconv'):
@@ -137,7 +134,7 @@ class AudioTfilm(tf.keras.Model):
 
       g = Add()([x, X])
       return g
-
+'''
   def predict(self, X):
     assert len(X) == 1
     x_sp = spline_up(X, self.r)
@@ -161,3 +158,4 @@ def spline_up(x_lr, r):
   x_sp = interpolate.splev(i_hr, f)
 
   return x_sp
+'''
