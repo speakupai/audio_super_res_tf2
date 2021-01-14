@@ -79,9 +79,9 @@ strides = get_inputs['strides']
 DRATE=2
 
 def audiotfilm(X_train, Y_train, layers):
-    inputs = tf.keras.Input(shape=(X_train.shape[1], X_train.shape[2]))
+    inputs = tf.keras.Input(shape=(X_train.shape[0], X_train.shape[1]))
     L = layers
-    n_filters = [  128,  256,  512, 512, 512, 512, 512, 512]
+    n_filters = [128, 256, 512, 512, 512, 512, 512, 512]
     n_filtersizes = [65, 33, 17,  9,  9,  9,  9, 9, 9]
     downsampling_l = []
 
