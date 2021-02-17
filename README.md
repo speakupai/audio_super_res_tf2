@@ -59,7 +59,8 @@ optional arguments:
   --strides             size of pooling strides
   --full                false by default--whether to calculate the "full" snr after each epoch. The "full" snr 
                         is the snr acorss the non-patched data file, rather than the average snr over all the 
-                        patches which is calculated by default`
+                        patches which is calculated by default
+`
                         
 
 For example, to run the model on data prepared for the single speaker dataset, you would type:
