@@ -16,10 +16,10 @@ def _make_normalizer(x_in, n_filters, n_block):
 
 def _apply_normalizer(x_in, x_norm, n_filters, n_block):
 	x_shape = tf.shape(x_in)
-	n_steps = x_shape[1] / n_block # will be 32 at training
+	n_steps = x_shape[1] / np.int32(n_block) # will be 32 at training
 
 	# reshape input into blocks
-	x_in = tf.reshape(x_in, shape=(-1, n_steps, n_block, n_filters))
+	x_in = tf.reshape(x_in, shape=(-1, np.int32(n_steps), n_block, n_filters))
 	x_norm = tf.reshape(x_norm, shape=(-1, n_steps, 1, n_filters))
         
 	# multiply
