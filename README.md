@@ -18,6 +18,7 @@ Only AudioTFile is implemented here because the original repo stated that it is 
 To install this package, simply clone the git repo:
 
 `git clone git@github.com:speakupai/audio_super_res_tf2.git;
+
 cd audio-super-res;`
 
 ### Creating Data
