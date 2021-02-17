@@ -32,7 +32,7 @@ Running the model is handled by the run.py script.
 `usage: run.py train [-h] --train TRAIN --val VAL [-e EPOCHS]
                     [--batch-size BATCH_SIZE] [--logname LOGNAME]
                     [--layers LAYERS] [--alg ALG] [--lr LR] [--model MODEL] 
-                    [--r R] [--piano PIANO] [--grocery GROCERY]
+                    [--r R] [--piano PIANO] [--grocery GROCERY]`
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -60,8 +60,6 @@ optional arguments:
   --full                false by default--whether to calculate the "full" snr after each epoch. The "full" snr 
                         is the snr acorss the non-patched data file, rather than the average snr over all the 
                         patches which is calculated by default
-`
-                        
 
 For example, to run the model on data prepared for the single speaker dataset, you would type:
 
