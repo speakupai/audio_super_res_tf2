@@ -16,10 +16,10 @@ Only AudioTFile is implemented here because the original repo stated that it is 
 
 ## Setup
 To install this package, simply clone the git repo:
-
-`git clone git@github.com:speakupai/audio_super_res_tf2.git;
-
-cd audio-super-res;`
+```
+git clone git@github.com:speakupai/audio_super_res_tf2.git;
+cd audio-super-res;
+```
 
 ### Creating Data
 To process data follow the directions from the original repo https://github.com/kuleshov/audio-super-res. We followed the same instructions so this section is not modified.
@@ -29,8 +29,8 @@ To run the model simply run `make` in the terminal. This activates a command tha
 
 ## CLI Instructions
 Running the model is handled by the run.py script.
-
-`usage: run.py train [-h] --train TRAIN --val VAL [-e EPOCHS]
+```
+usage: run.py train [-h] --train TRAIN --val VAL [-e EPOCHS]
                     [--batch-size BATCH_SIZE] [--logname LOGNAME]
                     [--layers LAYERS] [--alg ALG] [--lr LR] [--model MODEL] 
                     [--r R] [--piano PIANO] [--grocery GROCERY]`
@@ -61,10 +61,12 @@ optional arguments:
   --full                false by default--whether to calculate the "full" snr after each epoch. The "full" snr 
                         is the snr acorss the non-patched data file, rather than the average snr over all the 
                         patches which is calculated by default
+```
 
 For example, to run the model on data prepared for the single speaker dataset, you would type:
 
-`python run.py train \
+```
+python run.py train \
   --train ../data/vctk/speaker1/vctk-speaker1-train.4.16000.8192.4096.h5 \
   --val ../data/vctk/speaker1/vctk-speaker1-val.4.16000.8192.4096.h5 \
   -e 120 \
@@ -77,6 +79,7 @@ For example, to run the model on data prepared for the single speaker dataset, y
   --piano false \
   --pool_size 8 \
   --strides 8
-  --full true`
+  --full true
+```
  
 The above run will store checkpoints in ./singlespeaker.lr0.000300.1.g4.b64.
